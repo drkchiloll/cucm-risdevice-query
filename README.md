@@ -1,29 +1,36 @@
-# Example Typescript 2.x Library
+# NodeJS Wrapper for the CUCM RISDB Service
 
-Simple starter library from June 2017.
-Tutorial can be found at
-[how-to-write-a-typescript-library.com](http://how-to-write-a-typescript-library.com).
-
-Or just browse the code here! Or clone the repo.
-
-# Usage
-
+### Install
 ```
-git clone https://github.com/bersling/typescript-library-starter.git
+npm install cucm-risdevice-query
 ```
 
-then modify whatever you want, then
-
+## Example
+```javascript
+const ris = require('cucm-risdevice-query').RisQuery;
+const request = require('request');
+const devices = [
+ 'SEP285261FAE060',
+ 'SEPE4C72266AE30'
+];
+const risReqXml = ris.createRisDoc({
+  version: 'version of cucm',
+  query: devices
+});
+const risPath = '/realtimeservice2/services/RISService70';
+const url = `https://<cucm ip>:8443` + risPath;
+request({
+  url,
+  body: risReqXml,
+  headers: {
+   'Content-Type': 'text/xml'
+  },
+  auth: {
+    username: 'user',
+    password: 'pass'
+  },
+  strictSSL: false
+}, (err, resp, body) => {
+  const parsedResponse = ris.parseResponse(body);
+});
 ```
-tsc
-```
-
-You can check if everything is working like this:
-http://how-to-write-a-typescript-library.com/local-consumer
-
-You can write a test like this:
-http://how-to-write-a-typescript-library.com/unit-testing
-
-And once you're ready, simply change the `name` in the `package.json`
-and publish your brand new cool library. Have fun!
-
