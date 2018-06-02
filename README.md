@@ -17,8 +17,13 @@ const risReqXml = ris.createRisDoc({
   version: 'version of cucm',
   query: devices
 });
-const risPath = '/realtimeservice2/services/RISService70';
-const url = `https://<cucm ip>:8443` + risPath;
+
+const url = `https://<cucm ip>:8443` + ris.risPath;
+/**
+ * The RISPATH is dependent on CUCM Version
+ * For Version 9+: /realtimeservice2/services/RISService70
+ * For Version 8 and Below: /realtimeservice/services/RisPort70
+ */
 request({
   url,
   body: risReqXml,
