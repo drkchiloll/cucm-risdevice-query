@@ -1,6 +1,6 @@
 {
   "name": "cucm-risdevice-query",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Node Library to Lookup Devices using the RealTime Services DB",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
