@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const xmldom_1 = require("xmldom");
+const xpath = require("xpath");
 const ris_1 = require("./ris");
 exports.RisQuery = (() => {
     const service = {
         doc: null,
-        construct({ version, query }) {
+        createRisDoc({ version, query }) {
             this.doc = new xmldom_1.DOMParser().parseFromString(ris_1.risdoc);
             const cmSelect = this.doc.getElementsByTagName('soap:CmSelectionCriteria')[0], selectBy = this.doc.getElementsByTagName('soap:SelectBy')[0], selectItem = this.doc.getElementsByTagName('soap:SelectItems')[0];
             let dClass;
@@ -52,6 +53,17 @@ exports.RisQuery = (() => {
         },
         parseResponse(xml) {
             const doc = new xmldom_1.DOMParser().parseFromString(xml);
+            const ns1Select = xpath.useNamespaces({
+                ns1: 'http://schemas.cisco.com/ast/soap'
+            });
+            const ipNodes = ns1Select('//ns1:IP', doc), nameNodes = ns1Select('//ns1:CmDevices/ns1:item/ns1:Name', doc);
+            return ipNodes.reduce((o, node, i) => {
+                o = {
+                    ip: node.firstChild.data,
+                    name: nameNodes[i].firstChild.data
+                };
+                return o;
+            });
         }
     };
     return service;

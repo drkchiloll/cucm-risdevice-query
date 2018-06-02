@@ -6,7 +6,7 @@ import { risdoc } from './ris';
 export const RisQuery = (() => {
   const service: any = {
     doc: null,
-    construct({ version, query }) {
+    createRisDoc({ version, query }) {
       this.doc = new DOMParser().parseFromString(risdoc);
       const cmSelect = this.doc.getElementsByTagName('soap:CmSelectionCriteria')[0],
         selectBy = this.doc.getElementsByTagName('soap:SelectBy')[0],
@@ -56,7 +56,18 @@ export const RisQuery = (() => {
     },
     parseResponse(xml) {
       const doc = new DOMParser().parseFromString(xml);
-
+      const ns1Select = xpath.useNamespaces({
+        ns1: 'http://schemas.cisco.com/ast/soap'
+      });
+      const ipNodes = ns1Select('//ns1:IP', doc),
+        nameNodes: any = ns1Select('//ns1:CmDevices/ns1:item/ns1:Name', doc);
+      return ipNodes.reduce((o: any, node: any, i: number) => {
+        o = {
+          ip: node.firstChild.data,
+          name: nameNodes[i].firstChild.data
+        };
+        return o;
+      });
     }
   };
   return service;
