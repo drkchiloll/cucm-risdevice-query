@@ -16,8 +16,8 @@ exports.risdoc = `
         <soap:StateInfo/>
         <soap:CmSelectionCriteria>
           <soap:MaxReturnedDevices>1000</soap:MaxReturnedDevices>
-          <soap:Class>ANY</soap:Class>
-          <soap:DeviceClass>ANY</soap:DeviceClass>
+          <soap:Class>Any</soap:Class>
+          <soap:DeviceClass>Any</soap:DeviceClass>
           <soap:Model>255</soap:Model>
           <soap:Status>Registered</soap:Status>
           <soap:NodeName xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
