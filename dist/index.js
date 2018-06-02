@@ -6,16 +6,21 @@ const ris_1 = require("./ris");
 exports.RisQuery = (() => {
     const service = {
         doc: null,
+        risNS: 'http://schemas.cisco.com/ast/soap',
+        risPath: null,
         createRisDoc({ version, query }) {
             this.doc = new xmldom_1.DOMParser().parseFromString(ris_1.risdoc);
             const cmSelect = this.doc.getElementsByTagName('soap:CmSelectionCriteria')[0], selectBy = this.doc.getElementsByTagName('soap:SelectBy')[0], selectItem = this.doc.getElementsByTagName('soap:SelectItems')[0];
             let dClass;
             if (version.startsWith('8')) {
+                this.risPath = '/realtimeservice/services/RisPort70';
                 dClass = this.doc.getElementsByTagName('soap:DeviceClass')[0];
                 selectItem.setAttribute('xsi:type', 'soapenc:Array');
             }
-            else
+            else {
+                this.risPath = '/realtimeservice2/services/RISService70';
                 dClass = this.doc.getElementsByTagName('soap:Class')[0];
+            }
             dClass.parentNode.removeChild(dClass);
             if (query instanceof Array) {
                 selectBy.appendChild(this.doc.createTextNode('Name'));
@@ -53,10 +58,10 @@ exports.RisQuery = (() => {
         },
         parseResponse(xml) {
             const doc = new xmldom_1.DOMParser().parseFromString(xml);
-            const ns1Select = xpath.useNamespaces({
-                ns1: 'http://schemas.cisco.com/ast/soap'
-            });
-            const ipNodes = ns1Select('//ns1:IP', doc), nameNodes = ns1Select('//ns1:CmDevices/ns1:item/ns1:Name', doc);
+            const cmDevicesTag = doc.getElementsByTagNameNS(this.risNS, 'CmDevices');
+            const devDoc = new xmldom_1.DOMParser().parseFromString(cmDevicesTag.toString());
+            const ns1Select = xpath.useNamespaces({ ns1: this.risNS });
+            const ipNodes = ns1Select('//ns1:IP', devDoc), nameNodes = ns1Select('//ns1:Name', devDoc);
             return ipNodes.map((node, i) => ({
                 ip: node.firstChild.data,
                 name: nameNodes[i].firstChild.data

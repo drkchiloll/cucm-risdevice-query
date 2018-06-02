@@ -3,9 +3,36 @@ import * as xpath from 'xpath';
 import { Promise } from 'bluebird';
 import { risdoc } from './ris';
 
+export interface iCreateRisDocFunc {
+  ({ version: string, query: any }): string;
+}
+
+export interface iNameBuilder {
+  (devices: string[], selectItem: any): void;
+}
+export interface iIpBuilder {
+  (ip: string, selectItem: any): void;
+}
+export interface iParseResp {
+  (xml: string): [{ ip, name }]
+}
+
+export interface iRisService {
+  doc: any;
+  risNS: string;
+  risPath: string; //URL Endpoint to Use for RISDB
+  createRisDoc: iCreateRisDocFunc;
+  getItems: Function;
+  nameBuilder: iNameBuilder;
+  ipBuilder: iIpBuilder;
+  parseResponse: any;
+}
+
 export const RisQuery = (() => {
-  const service: any = {
+  const service: iRisService = {
     doc: null,
+    risNS: 'http://schemas.cisco.com/ast/soap',
+    risPath: null,
     createRisDoc({ version, query }) {
       this.doc = new DOMParser().parseFromString(risdoc);
       const cmSelect = this.doc.getElementsByTagName('soap:CmSelectionCriteria')[0],
@@ -13,9 +40,13 @@ export const RisQuery = (() => {
         selectItem = this.doc.getElementsByTagName('soap:SelectItems')[0];
       let dClass: any;
       if(version.startsWith('8')) {
+        this.risPath = '/realtimeservice/services/RisPort70';
         dClass = this.doc.getElementsByTagName('soap:DeviceClass')[0];
         selectItem.setAttribute('xsi:type', 'soapenc:Array');
-      } else dClass = this.doc.getElementsByTagName('soap:Class')[0];
+      } else {
+        this.risPath = '/realtimeservice2/services/RISService70';
+        dClass = this.doc.getElementsByTagName('soap:Class')[0];
+      }
       dClass.parentNode.removeChild(dClass);
       if(query instanceof Array) {
         selectBy.appendChild(
@@ -56,11 +87,14 @@ export const RisQuery = (() => {
     },
     parseResponse(xml) {
       const doc = new DOMParser().parseFromString(xml);
-      const ns1Select = xpath.useNamespaces({
-        ns1: 'http://schemas.cisco.com/ast/soap'
-      });
-      const ipNodes = ns1Select('//ns1:IP', doc),
-        nameNodes: any = ns1Select('//ns1:CmDevices/ns1:item/ns1:Name', doc);
+      const cmDevicesTag = doc.getElementsByTagNameNS(
+        this.risNS,
+        'CmDevices'
+      );
+      const devDoc = new DOMParser().parseFromString(cmDevicesTag.toString());
+      const ns1Select = xpath.useNamespaces({ ns1: this.risNS });
+      const ipNodes = ns1Select('//ns1:IP', devDoc),
+        nameNodes: any = ns1Select('//ns1:Name', devDoc);
       return ipNodes.map((node: any, i: number) => ({
         ip: node.firstChild.data,
         name: nameNodes[i].firstChild.data
