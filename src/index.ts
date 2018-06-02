@@ -61,13 +61,10 @@ export const RisQuery = (() => {
       });
       const ipNodes = ns1Select('//ns1:IP', doc),
         nameNodes: any = ns1Select('//ns1:CmDevices/ns1:item/ns1:Name', doc);
-      return ipNodes.reduce((o: any, node: any, i: number) => {
-        o = {
-          ip: node.firstChild.data,
-          name: nameNodes[i].firstChild.data
-        };
-        return o;
-      });
+      return ipNodes.map((node: any, i: number) => ({
+        ip: node.firstChild.data,
+        name: nameNodes[i].firstChild.data
+      }));
     }
   };
   return service;

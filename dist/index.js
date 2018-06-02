@@ -57,13 +57,10 @@ exports.RisQuery = (() => {
                 ns1: 'http://schemas.cisco.com/ast/soap'
             });
             const ipNodes = ns1Select('//ns1:IP', doc), nameNodes = ns1Select('//ns1:CmDevices/ns1:item/ns1:Name', doc);
-            return ipNodes.reduce((o, node, i) => {
-                o = {
-                    ip: node.firstChild.data,
-                    name: nameNodes[i].firstChild.data
-                };
-                return o;
-            });
+            return ipNodes.map((node, i) => ({
+                ip: node.firstChild.data,
+                name: nameNodes[i].firstChild.data
+            }));
         }
     };
     return service;
