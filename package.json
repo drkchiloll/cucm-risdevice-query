@@ -1,6 +1,6 @@
 {
   "name": "cucm-risdevice-query",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Node Library to Lookup Devices using the RealTime Services DB",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,12 +14,10 @@
   "author": "Samuel Womack",
   "license": "MIT",
   "dependencies": {
-    "bluebird": "^3.5.1",
     "xmldom": "^0.1.27",
     "xpath": "0.0.27"
   },
   "devDependencies": {
-    "@types/bluebird": "^3.5.20",
     "@types/xmldom": "^0.1.29"
   }
 }

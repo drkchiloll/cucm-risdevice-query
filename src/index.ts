@@ -1,6 +1,5 @@
 import { DOMParser } from 'xmldom';
 import * as xpath from 'xpath';
-import { Promise } from 'bluebird';
 import { risdoc } from './ris';
 
 export interface iCreateRisDocFunc {
