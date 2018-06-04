@@ -5,6 +5,8 @@
 npm install cucm-risdevice-query
 ```
 
+__* This module does not perform HTTPS requests to the RIS Endpoint__
+
 ## Example
 ```javascript
 const ris = require('cucm-risdevice-query').RisQuery;
@@ -24,7 +26,7 @@ const url = `https://<cucm ip>:8443` + ris.risPath;
  * For Version 9+: /realtimeservice2/services/RISService70
  * For Version 8 and Below: /realtimeservice/services/RisPort70
  */
-request({
+request.post({
   url,
   body: risReqXml,
   headers: {
@@ -37,5 +39,7 @@ request({
   strictSSL: false
 }, (err, resp, body) => {
   const parsedResponse = ris.parseResponse(body);
+  // Current Parsed Response Object
+  // [{ name: 'SEP...', ip: 'IP Address' }]
 });
 ```
