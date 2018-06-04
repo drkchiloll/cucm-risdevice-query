@@ -1,6 +1,7 @@
 # NodeJS Wrapper for the CUCM RISDB Service
 
-### Install
+## Install
+
 ```
 npm install cucm-risdevice-query
 ```
@@ -8,6 +9,7 @@ npm install cucm-risdevice-query
 __* This module does not perform HTTPS requests to the RIS Endpoint__
 
 ## Example
+
 ```javascript
 const ris = require('cucm-risdevice-query').RisQuery;
 const request = require('request');
@@ -43,3 +45,19 @@ request.post({
   // [{ name: 'SEP...', ip: 'IP Address' }]
 });
 ```
+
+## Contributing
+
+If you would like to contribute to the project and/or fork, clone the project to a directory and perform the following:
+
+```
+project_dir>npm install
+project_dir>npm install -g typescript
+project_dir>tsc -w
+```
+
+Use the src directory to modify add new .ts files
+
+### License
+---
+MIT
