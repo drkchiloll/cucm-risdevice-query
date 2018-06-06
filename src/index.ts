@@ -25,6 +25,8 @@ export interface iRisService {
   nameBuilder: iNameBuilder;
   ipBuilder: iIpBuilder;
   parseResponse: any;
+  handleDevices: any;
+  devices: [{ip?, name}]
 }
 
 export const RisQuery = (() => {
@@ -32,7 +34,9 @@ export const RisQuery = (() => {
     doc: null,
     risNS: 'http://schemas.cisco.com/ast/soap',
     risPath: null,
+    devices: null,
     createRisDoc({ version, query }) {
+      this.devices = query.map(q => ({ name: q }));
       this.doc = new DOMParser().parseFromString(risdoc);
       const cmSelect = this.doc.getElementsByTagName('soap:CmSelectionCriteria')[0],
         selectBy = this.doc.getElementsByTagName('soap:SelectBy')[0],
@@ -60,12 +64,14 @@ export const RisQuery = (() => {
       }
       return this.doc.toString();
     },
+
     getItems() {
       return {
         item: this.doc.createElement('soap:item'),
         Item: this.doc.createElement('soap:Item')
       };
     },
+
     nameBuilder(devices: any, selectItem) {
       devices.forEach(d => {
         const { item, Item } = this.getItems();
@@ -76,6 +82,7 @@ export const RisQuery = (() => {
       });
       return;
     },
+
     ipBuilder(ip: string, selectItem) {
       const { item, Item } = this.getItems();
       const dTextNode = this.doc.createTextNode(`${ip}.*`);
@@ -84,20 +91,40 @@ export const RisQuery = (() => {
       selectItem.appendChild(item);
       return;
     },
+
+    handleDevices({ipNodes, nameNodes}: any) {
+      return this.devices.map(({name}, i: number) => {
+        if(!ipNodes && !nameNodes) return { name, ip: undefined };
+        let match = nameNodes.find(n => n.firstChild.data === name);
+        if(!match) {
+          return { name, ip: undefined };
+        } else {
+          let ip = ipNodes[
+              nameNodes.findIndex(n => n.firstChild.data === name)
+            ].firstChild.data;
+          return { name, ip };
+        }
+      })
+    },
+
     parseResponse(xml) {
       const doc = new DOMParser().parseFromString(xml);
+      let devDoc: any, ns1Select: any,
+        ipNodes: any, nameNodes: any;
       const cmDevicesTag = doc.getElementsByTagNameNS(
         this.risNS,
         'CmDevices'
       );
-      const devDoc = new DOMParser().parseFromString(cmDevicesTag.toString());
-      const ns1Select = xpath.useNamespaces({ ns1: this.risNS });
-      const ipNodes = ns1Select('//ns1:IP', devDoc),
-        nameNodes: any = ns1Select('//ns1:Name', devDoc);
-      return ipNodes.map((node: any, i: number) => ({
-        ip: node.firstChild.data,
-        name: nameNodes[i].firstChild.data
-      }));
+      if(!cmDevicesTag.toString()) {
+        ipNodes = null;
+        nameNodes = null;
+      } else {
+        devDoc = new DOMParser().parseFromString(cmDevicesTag.toString());
+        ns1Select = xpath.useNamespaces({ ns1: this.risNS });
+        ipNodes = ns1Select('//ns1:IP', devDoc);
+        nameNodes = ns1Select('//ns1:Name', devDoc);
+      }
+      return this.handleDevices({ ipNodes, nameNodes });
     }
   };
   return service;
