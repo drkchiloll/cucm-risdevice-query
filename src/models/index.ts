@@ -3,11 +3,11 @@ export interface iCreateRisDocFunc {
 }
 
 export interface iNameBuilder {
-  (devices: string[], selectItem: any): void;
+  (rdoc: any, devices: string[], selectItem: any): void;
 }
 
 export interface iIpBuilder {
-  (ip: string, selectItem: any): void;
+  (rdoc: any, ip: string, selectItem: any): void;
 }
 
 export type Device = {
@@ -30,5 +30,4 @@ export interface iRisService {
   ipBuilder: iIpBuilder;
   parseResponse: iParseResp;
   handleDevices: any;
-  devices: Device[]
 }
