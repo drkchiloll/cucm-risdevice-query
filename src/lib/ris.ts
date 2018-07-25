@@ -83,9 +83,9 @@ export const RisQuery = (() => {
       });
       if(!devices) {
         if(!ips) return null;
-        return ips.map((iNode: any, idx) => 
-          construct({node: iNode, index: idx})
-        );
+        return ips
+          .filter((iNode:any, idx) => names[idx])
+          .map((iNode: any, idx) => construct({node: iNode, index: idx}));
       } else {
         return devices.map((name, i: number) => {
           if(!ips && !names) return { name, ip: undefined };
