@@ -70,7 +70,7 @@ export const RisQuery = (() => {
     },
 
     handleDevices(params: any) {
-      const {ips, names, fw, models, devices} = params;
+      const {ips, names, fw, models, user, dn, ts, devices} = params;
       const construct = ({node, index}) => ({
         ip: node.firstChild.data,
         name: names[index].firstChild.data,
@@ -79,7 +79,13 @@ export const RisQuery = (() => {
           if(fw[index] && fw[index].firstChild)
             return fw[index].firstChild.data;
           else return 'UNKNOWN';
-        })()
+        })(),
+        dn: dn[index] && dn[index].firstChild.data.split('-')[0] ?
+          dn[index].firstChild.data.split('-')[0]: undefined,
+        user: user[index].firstChild && user[index].firstChild.data ?
+          user[index].firstChild.data: undefined,
+        ts: ts[index] && ts[index].firstChild.data ?
+          ts[index].firstChild.data: undefined
       });
       if(!devices) {
         if(!ips) return null;
@@ -105,7 +111,8 @@ export const RisQuery = (() => {
     parseResponse(xml, devices?) {
       const risdoc = new DOMParser().parseFromString(xml);
       let devDoc: any, ns1Select: any,
-        ipNodes: any, nameNodes: any, modelNodes: any, fwNodes: any;
+        ipNodes: any, nameNodes: any, modelNodes: any, fwNodes: any,
+        dnNode: any, userNode: any, timeNode: any
       const cmDevicesTag = risdoc.getElementsByTagNameNS(
         this.risNS,
         'CmDevices'
@@ -120,12 +127,18 @@ export const RisQuery = (() => {
         nameNodes = ns1Select('//ns1:Name', devDoc);
         modelNodes = ns1Select('//ns1:Model', devDoc);
         fwNodes = ns1Select('//ns1:ActiveLoadID', devDoc);
+        dnNode = ns1Select('//ns1:DirNumber', devDoc);
+        userNode = ns1Select('//ns1:LoginUserId', devDoc);
+        timeNode = ns1Select('//ns1:TimeStamp', devDoc);
       }
       return this.handleDevices({
         ips: ipNodes,
         names: nameNodes,
         fw: fwNodes,
         models: modelNodes,
+        user: userNode,
+        dn: dnNode,
+        ts: timeNode,
         devices
       });
     }
