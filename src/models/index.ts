@@ -1,5 +1,5 @@
 export interface iCreateRisDocFunc {
-  ({ version: string, query: any }): string;
+  ({ version: string, query: any, options: { status } }): string;
 }
 
 export interface iNameBuilder {

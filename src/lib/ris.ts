@@ -1,6 +1,6 @@
 import { DOMParser } from 'xmldom';
 import * as xpath from 'xpath';
-import { doc } from './risdoc';
+import { builder } from './risdoc';
 // import { Promise } from 'bluebird';
 import {
   iRisService, iParseResp, iIpBuilder,
@@ -9,12 +9,13 @@ import {
 
 export const RisQuery = (() => {
   const service: iRisService = {
-    test() { return doc.toString() },
+    test() { return builder.toString() },
     doc: null,
     risNS: 'http://schemas.cisco.com/ast/soap',
     risPath: null,
-    createRisDoc({ version, query }) {
-      const risdoc = new DOMParser().parseFromString(doc.toString());
+    createRisDoc({ version, query, options = {} }) {
+      const d = builder(options);
+      const risdoc = new DOMParser().parseFromString(d.toString());
       const cmSelect = risdoc.getElementsByTagName('soap:CmSelectionCriteria')[0],
         selectBy = risdoc.getElementsByTagName('soap:SelectBy')[0],
         selectItem = risdoc.getElementsByTagName('soap:SelectItems')[0];
@@ -70,7 +71,7 @@ export const RisQuery = (() => {
     },
 
     handleDevices(params: any) {
-      const {ips, names, fw, models, user, dn, ts, devices} = params;
+      const {ips, names, fw, models, user, dn, ts, devices, status} = params;
       const construct = ({node, index}) => ({
         ip: node.firstChild.data,
         name: names[index].firstChild.data,
@@ -80,18 +81,24 @@ export const RisQuery = (() => {
             return fw[index].firstChild.data;
           else return 'UNKNOWN';
         })(),
-        dn: dn[index] && dn[index].firstChild.data.split('-')[0] ?
+        dn: dn[index] && dn[index].firstChild &&
+          dn[index].firstChild.data.split('-')[0] ?
           dn[index].firstChild.data.split('-')[0]: undefined,
         user: user[index].firstChild && user[index].firstChild.data ?
           user[index].firstChild.data: undefined,
         ts: ts[index] && ts[index].firstChild.data ?
-          ts[index].firstChild.data: undefined
+          ts[index].firstChild.data: undefined,
+        status: status[index] && status[index].firstChild.data ?
+          status[index].firstChild.data: 'Unknown'
       });
+      console.log(ips.length);
       if(!devices) {
         if(!ips) return null;
         return ips
           .filter((iNode:any, idx) => names[idx])
-          .map((iNode: any, idx) => construct({node: iNode, index: idx}));
+          .map((iNode: any, idx) => {
+            return construct({node: iNode, index: idx})
+          });
       } else {
         return devices.map((name, i: number) => {
           if(!ips && !names) return { name, ip: undefined };
@@ -112,7 +119,7 @@ export const RisQuery = (() => {
       const risdoc = new DOMParser().parseFromString(xml);
       let devDoc: any, ns1Select: any,
         ipNodes: any, nameNodes: any, modelNodes: any, fwNodes: any,
-        dnNode: any, userNode: any, timeNode: any
+        dnNode: any, userNode: any, timeNode: any, statusNode: any;
       const cmDevicesTag = risdoc.getElementsByTagNameNS(
         this.risNS,
         'CmDevices'
@@ -130,6 +137,7 @@ export const RisQuery = (() => {
         dnNode = ns1Select('//ns1:DirNumber', devDoc);
         userNode = ns1Select('//ns1:LoginUserId', devDoc);
         timeNode = ns1Select('//ns1:TimeStamp', devDoc);
+        statusNode = ns1Select('//ns1:Status', devDoc)
       }
       return this.handleDevices({
         ips: ipNodes,
@@ -139,6 +147,7 @@ export const RisQuery = (() => {
         user: userNode,
         dn: dnNode,
         ts: timeNode,
+        status: statusNode,
         devices
       });
     }
